@@ -19,7 +19,7 @@ def sample_on_sphere(range_u=(0, 1), range_v=(0, 1)):
 
 def look_at(eye, at=np.array([0, 0, 0]), up=np.array([0, 0, 1]), eps=1e-5):
     at = at.astype(float).reshape(1, 3)
-    up = up.astype(float).reshpae(1, 3)
+    up = up.astype(float).reshape(1, 3)
 
     eye = eye.reshape(-1, 3) # 행의 위치에 -1이 들어있으면, 3개의 column을 가지도록 만듬
     up = up.repeat(eye.shape[0] // up.shape[0], axis=0)
@@ -40,3 +40,6 @@ def look_at(eye, at=np.array([0, 0, 0]), up=np.array([0, 0, 1]), eps=1e-5):
     r_mat = np.concatenate((x_axis.reshape(-1, 3, 1), y_axis.reshape(-1, 3, 1), z_axis.reshape(-1, 3, 1)), axis = 2)
 
     return r_mat
+
+# mat = sample_on_sphere()
+# print(mat)
