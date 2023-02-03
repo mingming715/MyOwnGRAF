@@ -46,13 +46,16 @@ class Generator(object):
         self.render = partial(render, H=self.H, W=self.W, focal=self.focal, chunk=self.chunk)
 
     def __call__(self, z, y=None, rays=None):
-        bs = z.shape[0]
+        bs = z.shape[0] #batch size
+        # ray sampling 수행
         if rays is None:
             rays = torch.cat([self.sample_rays() for _ in range(bs)], dim = 1)
+
 
         render_kwargs = self.render_kwargs_test if self.use_test_kwargs else self.render_kwargs_train
         render_kwargs = dict(render_kwargs)
 
+        # isinstance(): self.radius가 tuple이라면 True 반환
         if isinstance(self.radius, tuple):
             assert self.radius[1] - self.radius[0] <= render_kwargs['near'], 'Your smallest radius lies behind your near plane.'
             rays_radius = rays[0].norm(dim=-1)
@@ -62,7 +65,10 @@ class Generator(object):
             assert (render_kwargs['near'] >= 0).all() and (render_kwargs['far'] >= 0).all(), \
                 (rays_radius.min(), rays_radius.max(), shift.min(), shift.max())
 
+        # Latent code representation 추가
         render_kwargs['features'] = z
+        
+        #run_nerf_mod.py에 있는 render() 함수에서 volume rendering을 수행해서 최종 RGB 값을 출력
         rgb, disp, acc, extras = render(self.H, self.W, self.focal, chunk=self.chunk, rays=rays, **render_kwargs)
 
         rays_to_output = lambda x: x.view(len(x), -1) * 2 - 1      # (BxN_samples)xC

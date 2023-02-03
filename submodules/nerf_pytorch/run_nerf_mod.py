@@ -39,6 +39,7 @@ def run_network(inputs, viewdirs, fn, embed_fn, embeddirs_fn, features=None, net
         features = features.unsqueeze(1).expand(-1, inputs.shape[1], -1).flatten(0, 1)
 
         # only split if viewdirs is not None
+        # Splits Latent Shape (Zs) and Latent Appearance (Za)
         if viewdirs is not None and feat_dim_appearance > 0:
             features_shape = features[:, :-feat_dim_appearance]
             features_appearance = features[:, -feat_dim_appearance:]
@@ -46,6 +47,7 @@ def run_network(inputs, viewdirs, fn, embed_fn, embeddirs_fn, features=None, net
             features_shape = features
             features_appearance = None
 
+        #처음에 Zs를 concat해서 embedded에 적용
         embedded = torch.cat([embedded, features_shape], -1)
 
     if viewdirs is not None:
@@ -53,6 +55,7 @@ def run_network(inputs, viewdirs, fn, embed_fn, embeddirs_fn, features=None, net
         input_dirs_flat = torch.reshape(input_dirs, [-1, input_dirs.shape[-1]])
         embedded_dirs = embeddirs_fn(input_dirs_flat)
         embedded = torch.cat([embedded, embedded_dirs], -1)
+        # Viewdirs가 존재하면 Za도 같이 concat
         if features_appearance is not None:
             embedded = torch.cat([embedded, features_appearance], dim=-1)
     else:
@@ -63,7 +66,8 @@ def run_network(inputs, viewdirs, fn, embed_fn, embeddirs_fn, features=None, net
     outputs = torch.reshape(outputs_flat, list(inputs.shape[:-1]) + [outputs_flat.shape[-1]])
     return outputs
 
-
+# Render rays in smaller minibatches to avoid Out of Memory #
+# Latent code 적용됨 #
 def batchify_rays(rays_flat, chunk=1024*32, **kwargs):
 
     all_ret = {}
